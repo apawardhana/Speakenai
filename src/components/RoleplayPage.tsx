@@ -16,7 +16,11 @@ interface TranscriptSession {
   };
 }
 
-export function RoleplayPage() {
+interface RoleplayPageProps {
+  onViewResult?: () => void;
+}
+
+export function RoleplayPage({ onViewResult }: RoleplayPageProps) {
   const [isCallActive, setIsCallActive] = useState(false);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isAIMuted, setIsAIMuted] = useState(false);
@@ -394,7 +398,7 @@ export function RoleplayPage() {
                   </div>
 
                   {/* Recommendations */}
-                  <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-2xl p-6 border border-cyan-500/20">
+                  <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-2xl p-6 border border-cyan-500/20 mb-6">
                     <h4 className="text-white mb-3">Recommendations</h4>
                     <ul className="space-y-2 text-white/80">
                       <li>• Continue practicing pronunciation of complex words</li>
@@ -402,6 +406,19 @@ export function RoleplayPage() {
                       <li>• Great job on sentence structure and grammar!</li>
                     </ul>
                   </div>
+
+                  {/* View Full Summary Button */}
+                  {onViewResult && (
+                    <Button
+                      onClick={() => {
+                        setShowFeedback(false);
+                        onViewResult();
+                      }}
+                      className="w-full py-6 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg"
+                    >
+                      View Full Summary & Save Result
+                    </Button>
+                  )}
                 </motion.div>
               </motion.div>
             )}

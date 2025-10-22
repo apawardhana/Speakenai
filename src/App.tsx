@@ -11,8 +11,11 @@ import { LoginPage } from './components/LoginPage';
 import { RegisterPage } from './components/RegisterPage';
 import { LogoutModal } from './components/LogoutModal';
 import { OnboardingPage } from './components/OnboardingPage';
+import { ResultSummaryPage } from './components/ResultSummaryPage';
+import { Toaster } from './components/ui/sonner';
+import { toast } from 'sonner@2.0.3';
 
-type Page = 'login' | 'register' | 'home' | 'chat' | 'roleplay' | 'progress' | 'challenge' | 'settings' | 'profile';
+type Page = 'login' | 'register' | 'home' | 'chat' | 'roleplay' | 'progress' | 'challenge' | 'settings' | 'profile' | 'result-summary';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -36,11 +39,13 @@ export default function App() {
   const handleLogin = () => {
     setIsAuthenticated(true);
     setCurrentPage('home');
+    toast.success('Welcome to Speaken.AI! 🎉');
   };
 
   const handleRegister = () => {
     setIsAuthenticated(true);
     setCurrentPage('home');
+    toast.success('Account created successfully! Welcome aboard! 🚀');
   };
 
   const handleLogoutClick = () => {
@@ -51,6 +56,7 @@ export default function App() {
     setShowLogoutModal(false);
     setIsAuthenticated(false);
     setCurrentPage('login');
+    toast.success('You have successfully logged out. See you soon! 👋');
   };
 
   const handleLogoutCancel = () => {
@@ -85,6 +91,16 @@ export default function App() {
     return <OnboardingPage onComplete={handleOnboardingComplete} />;
   }
 
+  // Show Result Summary page (without navigation)
+  if (currentPage === 'result-summary') {
+    return (
+      <ResultSummaryPage
+        onTryAgain={() => setCurrentPage('roleplay')}
+        onBackToDashboard={() => setCurrentPage('home')}
+      />
+    );
+  }
+
   // Show main app if authenticated
   return (
     <div className="size-full">
@@ -100,7 +116,7 @@ export default function App() {
       <div className="h-full">
         {currentPage === 'home' && <HomePage onNavigate={handleNavigate} />}
         {currentPage === 'chat' && <ChatPage />}
-        {currentPage === 'roleplay' && <RoleplayPage />}
+        {currentPage === 'roleplay' && <RoleplayPage onViewResult={() => setCurrentPage('result-summary')} />}
         {currentPage === 'progress' && <ProgressPage />}
         {currentPage === 'challenge' && <DailyChallengePage />}
         {currentPage === 'settings' && <SettingsPage />}
@@ -113,6 +129,9 @@ export default function App() {
         onClose={handleLogoutCancel}
         onConfirm={handleLogoutConfirm}
       />
+
+      {/* Toast Notifications */}
+      <Toaster position="top-right" richColors />
     </div>
   );
 }
