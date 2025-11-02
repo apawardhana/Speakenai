@@ -9,14 +9,19 @@ import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner@2.0.3';
+import { UserProfile } from '../utils/supabase/client';
 
-export function ProfilePage() {
-  // Form state
-  const [fullName, setFullName] = useState('John Doe');
-  const [email, setEmail] = useState('john.doe@example.com');
+interface ProfilePageProps {
+  userProfile: UserProfile | null;
+}
+
+export function ProfilePage({ userProfile }: ProfilePageProps) {
+  // Form state - initialize with user profile data
+  const [fullName, setFullName] = useState(userProfile?.full_name || '');
+  const [email, setEmail] = useState(userProfile?.email || '');
   const [phone, setPhone] = useState('+1 (555) 123-4567');
   const [location, setLocation] = useState('San Francisco, CA');
   const [bio, setBio] = useState('Passionate English learner focused on improving pronunciation and fluency.');
@@ -25,9 +30,18 @@ export function ProfilePage() {
   const [currentLevel, setCurrentLevel] = useState('b1');
   
   // Avatar state
-  const [avatarUrl, setAvatarUrl] = useState('https://api.dicebear.com/7.x/avataaars/svg?seed=John');
+  const [avatarUrl, setAvatarUrl] = useState(`https://api.dicebear.com/7.x/avataaars/svg?seed=${userProfile?.full_name || 'User'}`);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Update form when userProfile changes
+  useEffect(() => {
+    if (userProfile) {
+      setFullName(userProfile.full_name || '');
+      setEmail(userProfile.email || '');
+      setAvatarUrl(`https://api.dicebear.com/7.x/avataaars/svg?seed=${userProfile.full_name || 'User'}`);
+    }
+  }, [userProfile]);
 
   // Password modal state
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -46,8 +60,8 @@ export function ProfilePage() {
 
   // Original values for comparison
   const originalValues = useRef({
-    fullName: 'John Doe',
-    email: 'john.doe@example.com',
+    fullName: userProfile?.full_name || '',
+    email: userProfile?.email || '',
     phone: '+1 (555) 123-4567',
     location: 'San Francisco, CA',
     bio: 'Passionate English learner focused on improving pronunciation and fluency.',

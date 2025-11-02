@@ -23,7 +23,7 @@ export function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      message: 'Hello! I\'m your AI English Tutor. I\'m here to help you improve your English writing skills. Try sending me a message, and I\'ll provide grammar corrections and suggestions!',
+      message: 'Hello! I\'m Speaken.AI, your English learning assistant. I\'m here to help you improve your English writing skills. Try sending me a message, and I\'ll provide grammar corrections and suggestions!',
       sender: 'ai',
       timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
     },

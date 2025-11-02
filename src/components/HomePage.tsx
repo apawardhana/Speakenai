@@ -4,9 +4,10 @@ import { AIMotivation } from './AIMotivation';
 
 interface HomePageProps {
   onNavigate: (page: 'chat' | 'roleplay' | 'challenge' | 'progress') => void;
+  userName?: string;
 }
 
-export function HomePage({ onNavigate }: HomePageProps) {
+export function HomePage({ onNavigate, userName = 'User' }: HomePageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-accent/30 pb-20 md:pb-0">
       <div className="max-w-6xl mx-auto px-6 py-12 md:py-20">
@@ -19,7 +20,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             <div className="flex items-center gap-3 mb-6">
               <Zap className="w-8 h-8" />
               <div>
-                <h2>Welcome Back, John! 👋</h2>
+                <h2>Welcome to Speaken.AI, {userName}! 👋</h2>
                 <p className="text-white/90">Great job on your learning streak! Keep it up!</p>
               </div>
             </div>

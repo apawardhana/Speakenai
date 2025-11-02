@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { User, Mail, Lock, UserPlus } from 'lucide-react';
+import { User, Mail, Lock, UserPlus, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Checkbox } from './ui/checkbox';
 import { Avatar3DMascot } from './Avatar3DMascot';
+import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { toast } from 'sonner@2.0.3';
 
 interface RegisterPageProps {
   onRegister: () => void;
@@ -21,6 +23,7 @@ export function RegisterPage({ onRegister, onNavigateToLogin }: RegisterPageProp
   });
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -61,18 +64,51 @@ export function RegisterPage({ onRegister, onNavigateToLogin }: RegisterPageProp
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      // Simulate registration
-      onRegister();
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+    try {
+      // Call backend signup endpoint
+      const response = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/make-server-bf8ad06b/signup`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${publicAnonKey}`,
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+            fullName: formData.fullName,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create account');
+      }
+
+      // Show success message
+      toast.success('Account created successfully! Please login to continue.');
+      
+      // Navigate to login page instead of auto-login
+      onNavigateToLogin();
+    } catch (error) {
+      console.error('Registration error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to create account');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSocialSignup = (provider: string) => {
-    // Simulate social signup
-    console.log(`Sign up with ${provider}`);
-    onRegister();
+    // Social signup not yet implemented
+    toast.info('Social login coming soon!');
   };
 
   return (
@@ -115,11 +151,19 @@ export function RegisterPage({ onRegister, onNavigateToLogin }: RegisterPageProp
               transition={{ duration: 0.6 }}
             >
               <div className="bg-white/40 backdrop-blur-xl rounded-3xl p-8 md:p-12 border border-white/60 shadow-2xl">
+                {/* Logo */}
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <h2 className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Speaken.AI</h2>
+                </div>
+
                 {/* Header */}
                 <div className="mb-8">
                   <h1 className="mb-2">Create Your Account</h1>
                   <p className="text-muted-foreground">
-                    Mulai perjalanan belajar bahasamu dengan AI Tutor.
+                    Mulai perjalanan belajar bahasamu dengan Speaken.AI.
                   </p>
                 </div>
 
@@ -244,10 +288,20 @@ export function RegisterPage({ onRegister, onNavigateToLogin }: RegisterPageProp
                   {/* Sign up button */}
                   <Button
                     type="submit"
-                    className="w-full h-14 rounded-xl bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white shadow-lg hover:shadow-purple-500/50 transition-all"
+                    disabled={isLoading}
+                    className="w-full h-14 rounded-xl bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white shadow-lg hover:shadow-purple-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <UserPlus className="w-5 h-5 mr-2" />
-                    Sign Up
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Creating Account...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-5 h-5 mr-2" />
+                        Sign Up
+                      </>
+                    )}
                   </Button>
                 </form>
 

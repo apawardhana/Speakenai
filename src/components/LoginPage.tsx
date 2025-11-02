@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { motion } from "motion/react";
-import { Mail, Lock, LogIn, Chrome } from "lucide-react";
+import { Mail, Lock, LogIn, Chrome, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Checkbox } from "./ui/checkbox";
 import { Avatar3DMascot } from "./Avatar3DMascot";
+import { signIn } from "../utils/supabase/client";
+import { toast } from "sonner@2.0.3";
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -19,17 +21,27 @@ export function LoginPage({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate login
-    onLogin();
+    
+    setIsLoading(true);
+    try {
+      await signIn(email, password);
+      toast.success('Welcome back to Speaken.AI! 🎉');
+      onLogin();
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to login');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSocialLogin = (provider: string) => {
-    // Simulate social login
-    console.log(`Login with ${provider}`);
-    onLogin();
+    // Social login not yet implemented
+    toast.info('Social login coming soon!');
   };
 
   return (
@@ -72,14 +84,21 @@ export function LoginPage({
               transition={{ duration: 0.6 }}
             >
               <div className="bg-white/40 backdrop-blur-xl rounded-3xl p-8 md:p-12 border border-white/60 shadow-2xl">
+                {/* Logo */}
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <h2 className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Speaken.AI</h2>
+                </div>
+
                 {/* Header */}
                 <div className="mb-8">
                   <h1 className="mb-2">
-                    Welcome To Speaken.AI
+                    Welcome Back!
                   </h1>
                   <p className="text-muted-foreground">
-                    Masuk untuk melanjutkan belajar dengan tutor
-                    AI kamu.
+                    Masuk untuk melanjutkan belajar dengan AI assistant kamu.
                   </p>
                 </div>
 
@@ -164,10 +183,20 @@ export function LoginPage({
                   {/* Login button */}
                   <Button
                     type="submit"
-                    className="w-full h-14 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white shadow-lg hover:shadow-cyan-500/50 transition-all"
+                    disabled={isLoading}
+                    className="w-full h-14 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white shadow-lg hover:shadow-cyan-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <LogIn className="w-5 h-5 mr-2" />
-                    Login
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Logging in...
+                      </>
+                    ) : (
+                      <>
+                        <LogIn className="w-5 h-5 mr-2" />
+                        Login
+                      </>
+                    )}
                   </Button>
                 </form>
 

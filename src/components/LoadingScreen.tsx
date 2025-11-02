@@ -64,7 +64,7 @@ export function LoadingScreen({ message = 'Loading...' }: LoadingScreenProps) {
           </div>
           
           <p className="text-muted-foreground">
-            Preparing your AI tutor...
+            Preparing Speaken.AI...
           </p>
         </motion.div>
 

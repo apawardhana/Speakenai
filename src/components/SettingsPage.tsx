@@ -1,12 +1,44 @@
-import { User, Bell, Globe, Target, Volume2, Palette, Settings as SettingsIcon } from 'lucide-react';
+import { useState } from 'react';
+import { User, Bell, Globe, Target, Volume2, Palette, Settings as SettingsIcon, Loader2, CheckCircle2 } from 'lucide-react';
 import { Card } from './ui/card';
 import { Switch } from './ui/switch';
 import { Label } from './ui/label';
 import { Button } from './ui/button';
+import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { updateProfile, UserProfile } from '../utils/supabase/client';
+import { toast } from 'sonner@2.0.3';
 
-export function SettingsPage() {
+interface SettingsPageProps {
+  userProfile: UserProfile | null;
+}
+
+export function SettingsPage({ userProfile }: SettingsPageProps) {
+  const [fullName, setFullName] = useState(userProfile?.full_name || '');
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  const handleNameChange = (value: string) => {
+    setFullName(value);
+    setHasChanges(value !== userProfile?.full_name);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!hasChanges) return;
+
+    setIsSaving(true);
+    try {
+      await updateProfile(fullName);
+      toast.success('✅ Profile updated successfully!');
+      setHasChanges(false);
+    } catch (error) {
+      console.error('Profile update error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update profile');
+    } finally {
+      setIsSaving(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-accent/30 p-6 pb-24 md:pb-6">
       <div className="max-w-4xl mx-auto">
@@ -31,36 +63,67 @@ export function SettingsPage() {
             
             <div className="flex items-center gap-4 mb-6">
               <Avatar className="w-20 h-20">
-                <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=student" />
-                <AvatarFallback>JD</AvatarFallback>
+                <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userProfile?.full_name || 'User'}`} />
+                <AvatarFallback>
+                  {userProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <h4>John Doe</h4>
-                <p className="text-muted-foreground">john.doe@example.com</p>
+                <h4>{userProfile?.full_name || 'User'}</h4>
+                <p className="text-muted-foreground">{userProfile?.email || 'user@example.com'}</p>
               </div>
-              <Button variant="outline" className="rounded-xl">
-                Edit Profile
-              </Button>
+              {hasChanges && (
+                <div className="flex items-center gap-2 text-sm text-orange-600">
+                  <div className="w-2 h-2 bg-orange-600 rounded-full animate-pulse" />
+                  Unsaved changes
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="mb-2 block">Display Name</Label>
-                <input
+                <Label className="mb-2 block">Full Name</Label>
+                <Input
                   type="text"
-                  defaultValue="John Doe"
-                  className="w-full px-4 py-2 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={fullName}
+                  onChange={(e) => handleNameChange(e.target.value)}
+                  placeholder="Your full name"
+                  className="rounded-xl"
                 />
               </div>
               <div>
                 <Label className="mb-2 block">Email</Label>
-                <input
+                <Input
                   type="email"
-                  defaultValue="john.doe@example.com"
-                  className="w-full px-4 py-2 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={userProfile?.email || ''}
+                  disabled
+                  className="rounded-xl bg-muted"
                 />
+                <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
               </div>
             </div>
+            
+            {hasChanges && (
+              <div className="mt-4 pt-4 border-t">
+                <Button 
+                  onClick={handleSaveProfile}
+                  disabled={isSaving}
+                  className="w-full md:w-auto rounded-xl"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      Save Profile Changes
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
           </Card>
 
           {/* Learning Preferences */}
